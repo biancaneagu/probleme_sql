@@ -108,10 +108,39 @@ select * from clienti
 select * from comenzi
 select * from functii
 
+--Construiţi un trigger care să nu permită adăugarea unui nou client cu o limită de credit mai
+--mică de 50.
+create or replace trigger trg_limita_credit50
+before insert on clienti
+for each row
+begin
+    if :new.limita_credit < 50 then 
+    raise_application_error(-20001, 'Nu se poate adauga un client cu limita de credit < 50');
+    end if;
+end;
+/
+
+insert into clienti(id_client, prenume_client, nume_client, telefon, limita_Credit, email_Client, data_nastere, starea_civila, sex, nivel_venituri)
+            values(501, 'Bianca', 'Neagu', '0750459448', 49, 'NEAGUB54@GMAIL.COM', to_date('28-09-2005', 'dd-mm-yyyy'), 'necasatorita', 'F', 20000);
 
 
 
-
-
-
+---- SA SE CONSRUIASCA UN TRIGGER 
+--CARE SA NU PERMITA MICSORAREA SALARIULUI UNUI ANG CARE A INTERMEDIAT CEL PUTIN 3 COMENZI
+create or replace trigger trg_micsorare_salariu
+before update on angajati 
+for each row
+declare 
+    v_count number;
+begin 
+    if :new.salariul < :old.salariul then
+    select count(*) into v_count from angajati where id_angajat = :new.id_angajat and id_angajat in 
+    (select id_angajat from comenzi group by id_angajat having count(id_comanda) > 3 );
+    
+    if v_count > 0 then
+    raise_application_error(-20001, 'Nu se poate micsora salariul unui angajat care a intermediat > 3 comenzi');
+end if;
+end if;
+end;
+/
 
