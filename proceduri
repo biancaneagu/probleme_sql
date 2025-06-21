@@ -1,0 +1,46 @@
+------------------------------------PROCEDURI-------------------------------------------------
+
+--Procedura modifica_salariul primeşte doi parametrii: p_id_angajat şi procent şi 
+--majorează cu procentul specificat salariul angajatului cu id_angajat=p_id_angajat:
+--procedura tipareste rezultatele inainte si dupa update
+set serveroutput on
+create or replace procedure mareste_salariul_procent (p_id_angajat IN number, p_procent IN number)
+is
+v_salariul number;
+begin
+select salariul into v_salariul from angajati where id_angajat = p_id_angajat;
+dbms_output.put_line('Angajatul avea salariul ' || v_salariul);
+
+update angajati set salariul = salariul + salariul * p_procent where id_angajat = p_id_angajat;
+select salariul into v_salariul from angajati where id_angajat = p_id_angajat;
+
+dbms_output.put_line('Angajatul are acum salariul ' || v_salariul || ' dupa o crestere de ' || p_procent || ' %');
+end;
+/
+
+--apelul procedurii 
+exec mareste_Salariul_procent(145, 0.15);
+
+call mareste_Salariul_procent(145, 0.15);
+
+--Procedura primeşte ca parametru de tip IN id_ul unui angajat şi returnează prin 
+--parametrii de tip OUT numele şi salariul acestuia: 
+create or replace procedure afiseaza_nume_salariu(p_id_angajat IN number, p_nume OUT varchar2, p_salariul OUT number)
+is
+begin 
+select nume, salariul into p_nume, p_salariul from angajati where id_angajat = p_id_angajat;
+dbms_output.put_line('Angajatul cu id-ul ' || p_id_angajat || ' se numeste ' || p_nume || ' si are salariul de ' || p_salariul);
+end;
+/
+
+declare
+v_nume varchar2(100);
+v_salariul number;
+begin
+afiseaza_nume_salariu(145, v_nume, v_Salariul);
+end;
+/
+
+--Procedura calculează salariul mediu şi îl returnează printr-un parametru de tip OUT:
+
+
