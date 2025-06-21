@@ -1,0 +1,117 @@
+--Utilizând un cursor explicit, afişaţi toţi salariaţii din tabela ANGAJAŢI care lucrează într
+--un anumit departament (id_departament) primit ca parametru.
+set serveroutput on;
+declare 
+    v_nume_salariat varchar2(50);
+    cursor c(v_dep NUMBER)is select nume from angajati where id_departament = v_dep;
+begin    
+    for r in c(110) 
+    loop 
+    dbms_output.put_line(r.nume);
+    end loop;
+end;
+/
+
+--Creaţi un bloc PL/SQL care să afişeze informaţii despre clienţii care au încheiat comenzi
+--în anul 1999
+declare 
+    v_nume_client varchar2(50);
+    cursor c is select nume_client from clienti cl, comenzi c where cl.id_client = c.id_client
+    and extract(year from data) = 2018;
+begin 
+    for r in c 
+    loop
+    dbms_output.put_line(r.nume_client);
+    end loop;
+end;
+/
+
+--Să se afişeze printr-o funcţie informaţii despre clienţii de sex masculin. Funcţia să
+--returneze numărul acestora. Să se trateze şi o excepţie definită de utilizator. Să se apeleze
+--funcţia.
+
+create or replace function nr_barbati return number is
+v_count NUMBER:= 0;
+--definim si exceptia 
+niciun_barbat exception;
+begin
+select count(*) into v_count from clienti where sex = 'M';
+
+--tratam excepti 
+if v_count = 0 then 
+    raise niciun_barbat;
+end if;
+ return v_count;
+ 
+exception 
+    when niciun_barbat then dbms_output.put_line('Nu s a gasit niciun barbat in tabela clienti!');
+return 0;
+end;
+/
+
+declare
+
+begin 
+    
+    dbms_output.put_line(nr_barbati);
+end;
+/
+
+--Construiţi un trigger care să nu permită existenţa unei comenzi cu o cantitate comandată
+--mai mare de 1000.
+create or replace trigger trg_cantitate_1000
+after insert on rand_comenzi
+for each row 
+begin 
+    if :new.cantitate > 1000 then 
+    raise_application_error(-20001, 'Cantitatea nu poate depasi 1000');
+    end if;
+end;
+/
+
+
+--testare trigger 
+select * from comenzi where id_comanda = 500
+select * from comenzi
+insert into rand_comenzi(id_comanda, id_produs, pret, cantitate) values (2454, 2378, 50, 1002 )
+
+
+
+--Creati un declansator (trigger) care se vaactiva la fiecare adaugare în tabela COMENZI.
+--Acest declansator va trebui să verifice dacă angajatul asociat cu comanda (conformid_angajat din tabela COMENZI) 
+--are functia Sales Representative sau Sales Manager. Dacă nu o are, atunci comanda nu ar trebui să fie
+--permisă. Testati declansatorul folosind o instructiune LMD.
+
+create or replace trigger trg_functie_sales
+before insert on comenzi
+for each row
+declare
+v_count number;
+begin 
+    select count(*)into v_count from angajati where :new.id_angajat in 
+    (select id_angajat from angajati a, functii f
+        where a.id_functie = f.id_functie 
+             and denumire_functie  in ('Sales Representative' ,'Sales Manager' ));
+    if v_count = 0 
+    then raise_application_error(-20001, 'Comanda nu poate fi intermediata de un angajat din afara Sales');
+    end if;
+end;
+/
+--testare trigger
+   insert into comenzi (id_comanda, data, modalitate, id_client, stare_comanda, id_angajat)
+   values(3000, to_date('28-09-2005', 'DD-MM-YYYY'), 'direct' ,476, 2, 190 );
+
+    
+ 
+select * from angajati
+select * from clienti
+select * from comenzi
+select * from functii
+
+
+
+
+
+
+
+
