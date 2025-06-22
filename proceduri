@@ -1,4 +1,4 @@
-------------------------------------PROCEDURI-------------------------------------------------
+------------------------------------------PROCEDURI-------------------------------------------------
 
 --Procedura modifica_salariul primeşte doi parametrii: p_id_angajat şi procent şi 
 --majorează cu procentul specificat salariul angajatului cu id_angajat=p_id_angajat:
@@ -42,5 +42,18 @@ end;
 /
 
 --Procedura calculează salariul mediu şi îl returnează printr-un parametru de tip OUT:
+set serveroutput on
+create or replace procedure salariu_mediu(p_sal_mediu OUT number)
+is
+begin
+select round(avg(salariul),2) into p_sal_mediu from angajati;
+dbms_output.put_line('Salariul mediu este: ' || p_sal_mediu);
+end;
+/
 
-
+declare 
+v_sal_mediu number;
+begin
+salariu_mediu(v_sal_mediu);
+end;
+/
