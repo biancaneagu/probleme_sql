@@ -70,3 +70,12 @@ end;
 /
 
 exec pachet_produse.prod_din_categorie('categorie_inexistenta');
+
+----daca tratam exceptia in interiorul blocului anonim din care apelam procedura, in pachet doar am fi declarat o si ridicat o, iar in bloc o tratam cu nume_pachet.exceptie
+BEGIN
+  pachet_produse.prod_din_categorie('CategoriaInexistenta');
+EXCEPTION
+  WHEN pachet_produse.exceptie THEN
+    DBMS_OUTPUT.PUT_LINE('Exceptie tratata: Nu exista produse in aceasta categorie!');
+END;
+/
