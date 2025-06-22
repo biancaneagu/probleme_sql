@@ -144,3 +144,39 @@ end if;
 end;
 /
 
+/* Construiti un trigger care permite o reducere a salariului de
+
+pana la 5% pentru angajatii care au intermediat 3 sau mai multe comenzi
+pana la 10% pentru angajatii care au intermediat 1 sau 2 comenzi
+pana la 15% pentru angajatii care nu au intermediat nicio comanda
+
+Sa se testeze triggerul folosind o instructiune SQL.*/
+
+create or replace trigger redu_salariu_nr_comenzi 
+before update on angajati
+for each row
+
+declare 
+v_nr_comenzi number;
+v_procent_reducere number;
+begin
+select count(id_angajat) into v_nr_comenzi from comenzi where id_angajat = :old.id_angajat;
+v_procent_reducere := (:new.salariul - :old.salariul)/:old.salariul * 100 ;
+if v_nr_comenzi > 3 and v_procent_reducere < -5 then
+raise_application_error(-20001, 'Angajatul a intermediat mai mult de 3 comenzi, nu se poate reduce salariul cu mai mult de 5%');
+elsif v_nr_comenzi =1 or v_nr_comenzi = 2 and v_procent_reducere < -10 then
+raise_application_error(-20001, 'Angajatul a intermediat 1 sau 2 comenzi, nu se poate reduce salariul cu mai mult de 10%');
+elsif v_nr_comenzi = 0 and v_procent_reducere < -15 then
+raise_application_error(-20001, 'nu se poate reduce salariul cu mai mult de 15%');
+end if;
+end;
+/
+
+
+update angajati set salariul=4000 where id_angajat = 152
+
+
+select id_angajat, count(id_angajat)  from comenzi group by id_angajat
+select salariul from angajati where id_angajat = 152
+
+
