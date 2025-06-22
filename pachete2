@@ -1,0 +1,72 @@
+/*Construiti un pachet care contine:
+  - o functie care primeste id-ul unui produs si returneaza numarul de comenzi care
+     contin produsul respectiv
+  - o procedura care primeste id-ul unei categorii si afiseaza folosind o colectie
+    denumirea produselor din categoria respectiva precum si numarul de comenzi care
+    contin produsul respectiv folosind functia anterior construita. Daca nu exista
+    niciun produs in categoria respectiva, sa se ridice o exceptie definita de utilizator
+  - sa se apeleze procedura dintr-un bloc anonim si sa se trateze explict exceptia respectiva
+  */
+
+create or replace package pachet_produse
+is
+function f_nr_comenzi(p_id_produs in number) return number;
+procedure prod_din_categorie(p_categorie in varchar2);
+exceptie exception;
+end;
+/
+
+create or replace package body pachet_produse
+is
+
+function f_nr_comenzi(p_id_produs in number) return number
+is
+v_count number;
+begin
+select count(*) into v_count from rand_comenzi where id_produs = p_id_produs;
+return v_count;
+end f_nr_comenzi;
+
+
+procedure prod_din_categorie(p_categorie in varchar2)
+is
+--declaram tipuri
+type denumiri_produse_table is table of varchar2(100);
+type nr_comenzi_produse_table is table of number;
+--declaram variabile din acele tipuri
+v_denumiri denumiri_produse_table;
+v_nr_com nr_comenzi_produse_table;
+
+begin
+select denumire_produs, f_nr_comenzi(id_produs) bulk collect into v_denumiri, v_nr_com
+from produse where categorie = p_categorie;
+
+if v_denumiri.count = 0 then 
+    raise exceptie;
+end if;
+
+for i in 1 .. v_denumiri.count loop
+    dbms_output.put_line('Produsul: ' || v_denumiri(i) || ' apare in '|| v_nr_com(i) || ' comenzi');
+end loop;
+exception 
+when exceptie then 
+    dbms_output.put_line('Nu exista niciun produs in categoria data');
+
+
+end prod_din_categorie;
+
+
+--terminam pachetul 
+end pachet_produse;
+/
+
+
+declare 
+v_count number;
+begin 
+v_Count := pachet_produse.f_nr_comenzi(2378);
+dbms_output.put_line(v_Count);
+end;
+/
+
+exec pachet_produse.prod_din_categorie('categorie_inexistenta');
