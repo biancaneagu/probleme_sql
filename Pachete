@@ -1,0 +1,95 @@
+---------------------------------PACHETE------------------------------------------------------------
+--sa se realizeze un pachet care sa contina o procedura de adaugare, o procedura de modificare, 
+--o procedura de stergere si o functie care sa returneze daca exista sau nu produsul cu un cod dat 
+create or replace package actualizare_produse 
+is
+
+procedure adauga_produs
+(p_codP in number,
+p_denumire in varchar2,
+p_categorie in varchar2,
+p_pret_lista in number,
+p_pret_min in number);
+
+--modifica pretul lista
+procedure modifica_produs
+(p_codP in number,
+p_pret_lista in number
+);
+
+--sterge produsul cu codul dat 
+procedure sterge_produs
+(p_codP in number
+);
+
+--functie care zice daca exista sau nu produsul cu acel cod 
+function exista_produs
+(p_codP number) 
+return boolean;
+
+--definim si o exceptie 
+exceptie exception;
+end actualizare_produse;
+/
+
+create or replace package body actualizare_produse
+is
+
+procedure adauga_produs
+(p_codP in number,
+p_denumire in varchar2,
+p_categorie in varchar2,
+p_pret_lista in number,
+p_pret_min in number) 
+is
+begin 
+    insert into produse(id_produs, denumire_produs,  categorie, pret_lista, pret_min)
+        values(p_codP, p_denumire, p_categorie, p_pret_lista, p_pret_min);
+end;
+
+
+procedure modifica_produs
+(p_codP in number,
+p_pret_lista in number
+) 
+is
+begin 
+update produse set pret_lista = p_pret_lista where id_produs = p_codp;
+end;
+
+
+procedure sterge_produs
+(p_codP in number
+) 
+is
+begin
+delete from produse where id_produs = p_codP;
+end;
+
+
+function exista_produs
+(p_codP number) 
+return boolean 
+is
+v_count number;
+begin 
+select count(*) into v_count from produse where id_produs = p_codP;
+return v_count>0;
+end;
+end actualizare_produse;
+/
+
+
+exec actualizare_produse.adauga_produs(5000, 'Ciocolata milka', 'Alimentar', 6, 4);
+
+--nu putem folosi functia asa pentru ca returneaza un boolean, ceea ce nu e suportat de sql simplu
+select actualizare_produse.exista_produs(5000) from dual
+--folosim functia intr un block anonim 
+set serveroutput on;
+declare 
+v_exista boolean;
+begin 
+v_exista := actualizare_produse.exista_produs(5000);
+dbms_output.put_line('Produsul exista: ' || case when v_exista then 'DA' else 'NU' end);
+end;
+/
